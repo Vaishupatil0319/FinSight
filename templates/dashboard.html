@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>FinSight Dashboard</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+<!-- NAVBAR -->
+
+
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+
+        <a class="navbar-brand fw-bold" href="/">
+            FinSight
+        </a>
+
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-white">
+                Financial Dashboard
+            </span>
+
+            <a href="{{ url_for('logout') }}"
+               class="btn btn-outline-light btn-sm">
+                Logout
+            </a>
+        </div>
+
+    </div>
+</nav>
+
+
+
+<div class="container mt-5">
+
+    {% if user %}
+
+    <!-- WELCOME -->
+
+    <h2 class="mb-4">
+        Welcome, {{ user.name }} 👋
+    </h2>
+
+
+    <!-- ================================ -->
+    <!-- KPI CARDS -->
+    <!-- ================================ -->
+
+    <div class="row g-4">
+
+        <!-- Income -->
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm p-3">
+
+                <h6>Monthly Income</h6>
+
+                <h3>
+                    ₹{{ "{:,.2f}".format(user.monthly_income) }}
+                </h3>
+
+            </div>
+
+        </div>
+
+
+        <!-- Expenses -->
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm p-3">
+
+                <h6>Total Expenses</h6>
+
+                <h3>
+                    ₹{{ "{:,.2f}".format(total_expenses) }}
+                </h3>
+
+            </div>
+
+        </div>
+
+
+        <!-- Savings -->
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm p-3">
+
+                <h6>Monthly Savings</h6>
+
+                <h3>
+                    ₹{{ "{:,.2f}".format(savings) }}
+                </h3>
+
+            </div>
+
+        </div>
+
+
+        <!-- Saving Rate -->
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm p-3">
+
+                <h6>Saving Rate</h6>
+
+                <h3>
+                    {{ "{:.1f}".format(saving_rate) }}%
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================ -->
+    <!-- FINANCIAL HEALTH -->
+    <!-- ================================ -->
+
+    <div class="card shadow p-4 mt-5">
+
+        <h4>
+            Financial Health
+        </h4>
+
+        <div class="mt-3">
+
+            {% if financial_health == "Healthy" %}
+
+            <div class="alert alert-success">
+
+                <strong>
+                    Healthy Financial Position
+                </strong>
+
+                <br>
+
+                Your current saving rate is
+                {{ "{:.1f}".format(saving_rate) }}%.
+
+            </div>
+
+            {% elif financial_health == "Moderate" %}
+
+            <div class="alert alert-warning">
+
+                <strong>
+                    Moderate Financial Position
+                </strong>
+
+                <br>
+
+                Your saving rate is
+                {{ "{:.1f}".format(saving_rate) }}%.
+
+                Consider improving your monthly savings.
+
+            </div>
+
+            {% else %}
+
+            <div class="alert alert-danger">
+
+                <strong>
+                    Financial Position Needs Attention
+                </strong>
+
+                <br>
+
+                Your current saving rate is
+                {{ "{:.1f}".format(saving_rate) }}%.
+
+                Consider reducing unnecessary expenses.
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================ -->
+    <!-- MONTHLY SAVINGS CHART -->
+    <!-- ================================ -->
+
+    <div class="card shadow p-4 mt-5">
+
+        <h4 class="mb-4">
+            Monthly Savings Trend
+        </h4>
+
+        <canvas id="savingsChart"></canvas>
+
+    </div>
+
+
+    <!-- ================================ -->
+    <!-- INCOME VS EXPENSE CHART -->
+    <!-- ================================ -->
+
+    <div class="card shadow-sm p-4 mt-4">
+
+        <h4 class="mb-4">
+            📊 Income vs Expense Analysis
+        </h4>
+
+        <canvas id="incomeExpenseChart"></canvas>
+
+    </div>
+
+
+    <!-- ================================ -->
+    <!-- SMART FINANCIAL INSIGHTS -->
+    <!-- ================================ -->
+
+    <div class="card shadow-sm p-4 mt-4">
+
+        <h4 class="mb-4">
+            💡 Smart Financial Insights
+        </h4>
+
+        {% for insight in insights %}
+
+        <div class="alert alert-info mb-2">
+
+            {{ insight }}
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+
+    <!-- ================================ -->
+    <!-- ACTION BUTTONS -->
+    <!-- ================================ -->
+
+    <div class="card shadow-sm p-4 mt-4 mb-5">
+
+        <h4 class="mb-4">
+            Financial Management
+        </h4>
+
+        <div class="row g-3">
+
+            <!-- Expenses -->
+
+            <div class="col-md-3">
+
+                <a
+                    href="{{ url_for('expenses', user_id=user_id) }}"
+                    class="btn btn-outline-primary w-100"
+                >
+                    💰 Manage Expenses
+                </a>
+
+            </div>
+
+
+            <!-- Analytics -->
+
+            <div class="col-md-3">
+
+                <a
+                    href="{{ url_for('analytics', user_id=user_id) }}"
+                    class="btn btn-outline-success w-100"
+                >
+                    📊 Expense Analytics
+                </a>
+
+            </div>
+
+
+            <!-- Goals -->
+
+            <div class="col-md-3">
+
+                <a
+                    href="{{ url_for('goals', user_id=user_id) }}"
+                    class="btn btn-outline-warning w-100"
+                >
+                    🎯 Financial Goals
+                </a>
+
+            </div>
+
+
+            <!-- Balance Sheet -->
+
+            <div class="col-md-3">
+
+                <a
+                    href="{{ url_for('balance_sheet', user_id=user_id) }}"
+                    class="btn btn-outline-info w-100"
+                >
+                    📋 Balance Sheet
+                </a>
+
+            </div>
+            <div class="col-md-3">
+
+                <a href="{{ url_for('investment_planner', user_id=user_id) }}"
+                class="btn btn-success">
+                    💰 Smart Investment Planner
+                </a>
+            <div class="col-md-3"></div>
+
+        </div>
+
+    </div>
+
+
+    {% else %}
+
+    <!-- NO PROFILE -->
+
+    <div class="alert alert-warning">
+
+        No financial profile found.
+
+        <a href="/profile">
+            Create Profile
+        </a>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+
+<!-- ================================ -->
+<!-- SAVINGS CHART SCRIPT -->
+<!-- ================================ -->
+
+<script>
+
+const months =
+    {{ months | tojson }};
+
+const savings =
+    {{ monthly_savings | tojson }};
+
+
+const ctx =
+    document
+        .getElementById("savingsChart")
+        .getContext("2d");
+
+
+new Chart(ctx, {
+
+    type: "line",
+
+    data: {
+
+        labels: months,
+
+        datasets: [{
+
+            label: "Monthly Savings",
+
+            data: savings,
+
+            fill: false,
+
+            tension: 0.3
+
+        }]
+
+    },
+
+    options: {
+
+        responsive: true,
+
+        scales: {
+
+            y: {
+
+                beginAtZero: false,
+
+                title: {
+
+                    display: true,
+
+                    text: "Savings (₹)"
+
+                }
+
+            },
+
+            x: {
+
+                title: {
+
+                    display: true,
+
+                    text: "Month"
+
+                }
+
+            }
+
+        }
+
+    }
+
+});
+
+</script>
+
+
+<!-- ================================ -->
+<!-- INCOME VS EXPENSE CHART SCRIPT -->
+<!-- ================================ -->
+
+<script>
+
+const comparisonMonths =
+    {{ months | tojson }};
+
+const comparisonExpenses =
+    {{ monthly_expenses | tojson }};
+
+const monthlyIncome =
+    {{ user.monthly_income | tojson }};
+
+
+const incomeData =
+    comparisonMonths.map(
+        () => monthlyIncome
+    );
+
+
+const comparisonCtx =
+    document
+        .getElementById("incomeExpenseChart")
+        .getContext("2d");
+
+
+new Chart(comparisonCtx, {
+
+    type: "bar",
+
+    data: {
+
+        labels: comparisonMonths,
+
+        datasets: [
+
+            {
+
+                label: "Income",
+
+                data: incomeData
+
+            },
+
+            {
+
+                label: "Expenses",
+
+                data: comparisonExpenses
+
+            }
+
+        ]
+
+    },
+
+    options: {
+
+        responsive: true,
+
+        plugins: {
+
+            legend: {
+
+                position: "bottom"
+
+            }
+
+        },
+
+        scales: {
+
+            y: {
+
+                beginAtZero: true,
+
+                title: {
+
+                    display: true,
+
+                    text: "Amount (₹)"
+
+                }
+
+            }
+
+        }
+
+    }
+
+});
+
+</script>
+
+
+</body>
+
+</html>

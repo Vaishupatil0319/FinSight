@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Financial Goals - FinSight</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+<nav class="navbar navbar-dark bg-dark">
+
+    <div class="container">
+            <a
+        href="{{ url_for('dashboard', user_id=user_id) }}"
+        class="btn btn-outline-primary mb-3"
+    >
+        ← Back to Dashboard
+    </a>
+
+        <a class="navbar-brand fw-bold" href="/">
+            FinSight
+        </a>
+
+        <span class="text-white">
+            Financial Goals
+        </span>
+
+    </div>
+
+</nav>
+
+
+<div class="container mt-5">
+
+    <div class="row">
+
+        <!-- ADD GOAL -->
+
+        <div class="col-md-5">
+
+            <div class="card shadow p-4">
+
+                <h3 class="mb-4">
+                    Create Financial Goal
+                </h3>
+
+
+                <form method="POST">
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Goal Name
+                        </label>
+
+                        <input
+                            type="text"
+                            name="goal_name"
+                            class="form-control"
+                            placeholder="Example: Emergency Fund"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Target Amount (₹)
+                        </label>
+
+                        <input
+                            type="number"
+                            name="target_amount"
+                            class="form-control"
+                            placeholder="Example: 500000"
+                            min="1"
+                            step="0.01"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Current Amount (₹)
+                        </label>
+
+                        <input
+                            type="number"
+                            name="current_amount"
+                            class="form-control"
+                            placeholder="Example: 100000"
+                            min="0"
+                            step="0.01"
+                            value="0"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="mb-4">
+
+                        <label class="form-label">
+                            Target Duration (Months)
+                        </label>
+
+                        <input
+                            type="number"
+                            name="target_months"
+                            class="form-control"
+                            placeholder="Example: 36"
+                            min="1"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary w-100"
+                    >
+                        Save Financial Goal
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+
+        <!-- GOAL LIST -->
+
+        <div class="col-md-7">
+
+            <div class="card shadow p-4">
+
+                <h3 class="mb-4">
+                    Your Financial Goals
+                </h3>
+
+
+                {% if goals %}
+
+                    {% for goal in goals %}
+
+                    <div class="card border mb-4 p-3">
+
+                        <h4>
+                            {{ goal.goal_name }}
+                        </h4>
+
+
+                        <div class="row mt-3">
+
+                            <div class="col-md-6">
+
+                                <small class="text-muted">
+                                    Target
+                                </small>
+
+                                <h5>
+                                    ₹{{ "{:,.2f}".format(goal.target_amount) }}
+                                </h5>
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <small class="text-muted">
+                                    Current Amount
+                                </small>
+
+                                <h5>
+                                    ₹{{ "{:,.2f}".format(goal.current_amount) }}
+                                </h5>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="progress mt-3"
+                             style="height: 20px;">
+
+                            <div
+                                class="progress-bar"
+                                role="progressbar"
+                                style="width: {{ goal.progress }}%;"
+                            >
+
+                                {{ "{:.1f}".format(goal.progress) }}%
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="row mt-4">
+
+                            <div class="col-md-6">
+
+                                <small class="text-muted">
+                                    Remaining Amount
+                                </small>
+
+                                <h5>
+                                    ₹{{ "{:,.2f}".format(goal.remaining) }}
+                                </h5>
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <small class="text-muted">
+                                    Required Monthly Saving
+                                </small>
+
+                                <h5>
+                                    ₹{{ "{:,.2f}".format(goal.monthly_required) }}
+                                </h5>
+
+                            </div>
+
+                        </div>
+
+
+                        <p class="text-muted mt-3">
+
+                            Target duration:
+                            <strong>
+                                {{ goal.target_months }} months
+                            </strong>
+
+                        </p>
+                        <hr class="my-4">
+
+<h5>
+    Investment Scenario Analysis
+</h5>
+
+<p class="text-muted">
+    Approximate monthly investment required under
+    different return assumptions.
+</p>
+
+
+<div class="table-responsive">
+
+    <table class="table table-bordered mt-3">
+
+        <thead>
+
+            <tr>
+
+                <th>Scenario</th>
+
+                <th>Assumed Return</th>
+
+                <th>Monthly Investment</th>
+
+            </tr>
+
+        </thead>
+
+
+        <tbody>
+
+            {% for scenario in goal.scenarios %}
+
+            <tr>
+
+                <td>
+
+                    <strong>
+                        {{ scenario.name }}
+                    </strong>
+
+                </td>
+
+
+                <td>
+
+                    {{ scenario.return_rate }}%
+
+                    <small class="text-muted">
+                        / year
+                    </small>
+
+                </td>
+
+
+                <td>
+
+                    <strong>
+                        ₹{{ "{:,.2f}".format(
+                            scenario.monthly_investment
+                        ) }}
+                    </strong>
+
+                    / month
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+
+<div class="alert alert-info mt-3">
+
+    <strong>Important:</strong>
+
+    These are hypothetical return scenarios
+    for financial planning and comparison only.
+    Actual investment returns may be different
+    and are not guaranteed.
+
+</div>
+<!-- Goal Feasibility Recommendation -->
+
+<div class="card mt-4 border-0 shadow-sm">
+
+    <div class="card-body">
+
+        <h5 class="mb-3">
+            🎯 Goal Feasibility & Recommendation
+        </h5>
+
+        <!-- Monthly Financial Summary -->
+
+        <div class="row text-center mb-4">
+
+            <div class="col-md-4">
+
+                <small class="text-muted">
+                    Monthly Income
+                </small>
+
+                <h5>
+                    ₹{{ "{:,.2f}".format(monthly_income) }}
+                </h5>
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <small class="text-muted">
+                    Monthly Expenses
+                </small>
+
+                <h5>
+                    ₹{{ "{:,.2f}".format(monthly_expenses) }}
+                </h5>
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <small class="text-muted">
+                    Available Surplus
+                </small>
+
+                <h5>
+                    ₹{{ "{:,.2f}".format(monthly_surplus) }}
+                </h5>
+
+            </div>
+
+        </div>
+
+
+        <!-- Recommendation -->
+
+        {% if goal.recommended_scenario %}
+
+            <div class="alert alert-success">
+
+                <h6 class="fw-bold">
+                    ✅ Goal is Achievable
+                </h6>
+
+                <p class="mb-1">
+                    {{ goal.recommendation }}
+                </p>
+
+                <strong>
+                    Recommended Scenario:
+                    {{ goal.recommended_scenario }}
+                </strong>
+
+            </div>
+
+        {% else %}
+
+            <div class="alert alert-warning">
+
+                <h6 class="fw-bold">
+                    ⚠️ Goal Needs Adjustment
+                </h6>
+
+                <p class="mb-0">
+                    {{ goal.recommendation }}
+                </p>
+
+            </div>
+
+        {% endif %}
+
+
+        <!-- Scenario Feasibility -->
+
+        <h6 class="mt-4">
+            Scenario Feasibility
+        </h6>
+
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Scenario
+                        </th>
+
+                        <th>
+                            Monthly Investment
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th>
+                            Additional Amount Needed
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for scenario in goal.scenarios %}
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                {{ scenario.name }}
+                            </strong>
+                        </td>
+
+
+                        <td>
+
+                            ₹{{ "{:,.2f}".format(
+                                scenario.monthly_investment
+                            ) }}
+
+                        </td>
+
+
+                        <td>
+
+                            {% if scenario.status == "Achievable" %}
+
+                                <span class="badge bg-success">
+                                    ✓ Achievable
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-warning text-dark">
+                                    ⚠ Needs Adjustment
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            {% if scenario.gap > 0 %}
+
+                                ₹{{ "{:,.2f}".format(
+                                    scenario.gap
+                                ) }}
+
+                            {% else %}
+
+                                <span class="text-success">
+                                    ₹0
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+                    </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <div class="alert alert-info">
+
+                        No financial goals added yet.
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="mt-4 mb-5">
+
+        <a
+            href="{{ url_for('dashboard', user_id=user_id) }}"
+            class="btn btn-success"
+        >
+            Back to Dashboard
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

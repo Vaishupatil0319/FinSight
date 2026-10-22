@@ -1,0 +1,17 @@
+body {
+    background-color: #f5f7fa;
+}
+
+.navbar-brand {
+    font-size: 24px;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+}
+
+.card h3 {
+    margin-top: 10px;
+    font-weight: bold;
+}

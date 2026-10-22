@@ -1,0 +1,263 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>FinSight | Investment Planner</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+</head>
+
+<body class="bg-light">
+
+<div class="container py-4">
+
+    <a
+        href="{{ url_for('dashboard', user_id=user_id) }}"
+        class="btn btn-outline-primary mb-4"
+    >
+        ← Back to Dashboard
+    </a>
+
+    <h2 class="fw-bold">Smart Investment Planner</h2>
+    <p class="text-muted">
+        Explore investment options based on your budget,
+        financial goal and investment duration.
+    </p>
+
+    <div class="row g-3 my-3">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Monthly Income</p>
+                    <h4>₹{{ "%.2f"|format(monthly_income) }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Available Monthly Surplus</p>
+                    <h4 class="text-success">
+                        ₹{{ "%.2f"|format(monthly_surplus) }}
+                    </h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Your Risk Preference</p>
+                    <h4>{{ risk_preference }}</h4>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card shadow-sm border-0 my-4">
+        <div class="card-body p-4">
+
+            <h4 class="mb-3">Create Your Investment Plan</h4>
+
+            {% if error_message %}
+                <div class="alert alert-danger">
+                    {{ error_message }}
+                </div>
+            {% endif %}
+
+            <form
+                method="POST"
+                action="{{ url_for('investment_planner', user_id=user_id) }}"
+            >
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        Monthly Investment Budget (₹)
+                    </label>
+
+                    <input
+                        type="number"
+                        name="monthly_budget"
+                        class="form-control"
+                        min="1"
+                        max="{{ monthly_surplus }}"
+                        step="0.01"
+                        value="{{ monthly_budget }}"
+                        required
+                    >
+
+                    <small class="text-muted">
+                        Keep this amount within your available monthly surplus.
+                    </small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Investment Duration</label>
+
+                    <select
+                        name="duration_years"
+                        class="form-select"
+                        required
+                    >
+                        {% for year in [1, 3, 5, 10, 15, 20] %}
+                            <option
+                                value="{{ year }}"
+                                {% if duration_years == year %}selected{% endif %}
+                            >
+                                {{ year }} year{% if year > 1 %}s{% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Financial Goal</label>
+
+                    <select
+                        name="investment_goal"
+                        class="form-select"
+                        required
+                    >
+                        {% for goal in [
+                            "Emergency Fund",
+                            "Education",
+                            "Buy a House",
+                            "Wealth Creation",
+                            "Short-term Goal"
+                        ] %}
+                            <option
+                                value="{{ goal }}"
+                                {% if selected_goal == goal %}selected{% endif %}
+                            >
+                                {{ goal }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">
+                    Generate Investment Comparison
+                </button>
+
+            </form>
+        </div>
+    </div>
+
+    {% if results %}
+
+        <h3 class="fw-bold mt-4">Your Investment Comparison</h3>
+
+        <p class="text-muted">
+            Goal: {{ selected_goal }} ·
+            Duration: {{ duration_years }} years ·
+            Budget: ₹{{ "%.2f"|format(monthly_budget) }}/month
+        </p>
+
+        <div class="row g-3">
+
+            {% for item in results %}
+
+                <div class="col-md-6 col-lg-4">
+
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+
+                            <h5 class="fw-bold">{{ item.name }}</h5>
+                            
+{% if item.suitable_for_profile %}
+    <span class="badge bg-success mb-2">
+        Matches your selected risk level
+    </span>
+{% else %}
+    <span class="badge bg-warning text-dark mb-2">
+        Higher risk than your selected profile
+    </span>
+{% endif %}
+
+                            <span class="badge bg-secondary">
+                                {{ item.risk }} Risk
+                            </span>
+
+                            <p class="mt-3">
+                                {{ item.description }}
+                            </p>
+
+                            {% if item.annual_rate is not none %}
+                                <p class="mb-1">
+                                    Illustrative annual rate:
+                                    <strong>{{ item.annual_rate }}%</strong>
+                                </p>
+
+                                <p class="mb-1">
+                                    Total contributions:
+                                    ₹{{ "%.2f"|format(item.contributions) }}
+                                </p>
+
+                                <p class="mb-1">
+                                    Estimated future value:
+                                </p>
+
+                                <h4 class="text-primary">
+                                    ₹{{ "{:,.2f}".format(item.future_value) }}
+                                </h4>
+
+                                <p class="small text-muted">
+                                    Illustrative growth:
+                                    ₹{{ "{:,.2f}".format(item.estimated_growth) }}
+                                </p>
+                            {% else %}
+                                <p class="mb-1">
+                                    Total contributions over this period:
+                                </p>
+
+                                <h5>
+                                    ₹{{ "{:,.2f}".format(item.contributions) }}
+                                </h5>
+
+                                <p class="small text-muted">
+                                    No future property value is estimated.
+                                    Property prices and transaction costs vary.
+                                </p>
+                            {% endif %}
+
+                            <hr>
+
+                            <p class="small mb-0">
+                                <strong>Liquidity:</strong>
+                                {{ item.liquidity }}
+                            </p>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+    <div class="alert alert-warning mt-4">
+        <strong>Important:</strong>
+        These calculations use hypothetical rates for educational comparison,
+        not live market data or guaranteed returns. Actual returns, fees,
+        taxes, inflation and product rules may change the outcome.
+        Consider emergency savings and your financial obligations before
+        investing. This tool does not replace advice from a qualified
+        financial adviser.
+    </div>
+
+</div>
+
+</body>
+</html>
